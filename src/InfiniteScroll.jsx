@@ -8,23 +8,18 @@ export const InfiniteScroll = ({
 }) => {
   const pageRef = useRef(1);
   const observer = useRef(null);
-  const lastElementObserver = useRef(null);
+  const lastElementObserverRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
 
   const fetchAPI = useCallback(() => {
     setLoading(true);
-    getData(query, pageRef.current)
-      .then((res) => {
-        console.log({ res });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    getData(query, pageRef.current).finally(() => {
+      setLoading(false);
+    });
   }, [getData, query]);
 
   useEffect(() => {
-    console.log("USE EFFECT");
     fetchAPI();
   }, [query, fetchAPI]);
 
@@ -33,13 +28,14 @@ export const InfiniteScroll = ({
       return;
     }
     observer.current = new IntersectionObserver((entries) => {
+      // if last element comes into the view then fetchApi
       if (entries[0].isIntersecting) {
         fetchAPI();
       }
     });
-
+    // if list has data then put an observer to the lastElementObserverRef
     if (listData.length) {
-      observer.current.observe(lastElementObserver.current);
+      observer.current.observe(lastElementObserverRef.current);
     }
 
     return () => {
@@ -51,8 +47,9 @@ export const InfiniteScroll = ({
 
   const renderList = () =>
     listData.map((item, index) => {
+      // putting observer to the last element in the list
       if (index === listData.length - 1) {
-        return renderListItem(item, item.key, lastElementObserver);
+        return renderListItem(item, item.key, lastElementObserverRef);
       }
       return renderListItem(item, item.key, null);
     });
